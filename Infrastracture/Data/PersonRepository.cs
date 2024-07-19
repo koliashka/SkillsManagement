@@ -1,12 +1,7 @@
-﻿using Application.Data;
-using Domain;
+﻿using Application.Interfaces;
+using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using SkillsManagement.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Data
 {
@@ -19,23 +14,23 @@ namespace Infrastructure.Data
             _context = context;
         }
 
-        public async Task<IEnumerable<Person>> GetAll()
+        public async Task<IEnumerable<Person>> GetAllAsync()
         {
             return await _context.Persons.Include(p => p.Skills).ToListAsync();
         }
 
-        public async Task<Person> GetById(long id)
+        public async Task<Person> GetByIdAsync(long id)
         {
             return await _context.Persons.Include(p => p.Skills).FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public async Task Create(Person person)
+        public async Task CreateAsync(Person person)
         {
             _context.Persons.Add(person);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateById(Person person)
+        public async Task UpdateByIdAsync(Person person)
         {
             var existingPerson = await _context.Persons.Include(p => p.Skills).FirstOrDefaultAsync(p => p.Id == person.Id);
             if (existingPerson == null)
@@ -49,13 +44,12 @@ namespace Infrastructure.Data
             _context.Skills.RemoveRange(existingPerson.Skills);
             existingPerson.Skills = person.Skills;
 
-            // Обновление состояния сущности
             _context.Entry(existingPerson).State = EntityState.Modified;
 
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteById(long id)
+        public async Task DeleteByIdAsync(long id)
         {
             var person = await _context.Persons.FindAsync(id);
             if (person != null)

@@ -1,12 +1,6 @@
-﻿using Application.Data;
-using Domain;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Domain.Models;
 
-namespace Application.Services
+namespace Application.Interfaces
 {
     public class PeopleServices : IPeopleServices
     {
@@ -17,29 +11,34 @@ namespace Application.Services
             _personRepository = personRepository;
         }
 
-        public async Task<List<Person>> GetAll()
+        public async Task<List<Person>> GetAllAsync()
         {
-            return (await _personRepository.GetAll()).ToList();
+            var persons = await _personRepository.GetAllAsync();
+            return persons.ToList();
         }
 
-        public async Task<Person> GetById(long id)
+       
+        public async Task<Person> GetByIdAsync(long id)
         {
-            return await _personRepository.GetById(id);
+            return await _personRepository.GetByIdAsync(id);
         }
 
-        public async Task Create(Person person)
+        
+        public async Task CreateAsync(Person person)
         {
-            await _personRepository.Create(person);
+            await _personRepository.CreateAsync(person);
         }
 
-        public async Task UpdateById(Person person)
+       
+        public async Task UpdateByIdAsync(Person person)
         {
-            await _personRepository.UpdateById(person);
+            await _personRepository.UpdateByIdAsync(person);
         }
 
-        public async Task DeleteById(long id)
+        
+        public async Task DeleteByIdAsync(long id)
         {
-            await _personRepository.DeleteById(id);
+            await _personRepository.DeleteByIdAsync(id);
         }
     }
 }

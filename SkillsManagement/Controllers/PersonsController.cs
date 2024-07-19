@@ -1,91 +1,164 @@
-﻿using Application.Data;
-using Application.Services;
-using Azure.Core;
-using Domain;
+﻿using Application.Interfaces;
+using Domain.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SkillsManagement.Data;
-using System.Threading;
-
+using Application.DTO;
 
 namespace SkillsManagement.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     public class PersonsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly IPeopleServices _peopleServices;
+        private readonly ILogger<PersonsController> _logger;
 
-
-        public PersonsController(ApplicationDbContext context, IPeopleServices peopleServices)
+        // Constructor to inject dependencies
+        public PersonsController(ApplicationDbContext context, IPeopleServices peopleServices, ILogger<PersonsController> logger)
         {
             _peopleServices = peopleServices;
             _context = context;
+            _logger = logger;
         }
 
-        // GET: api/persons
+        /// <summary>
+        /// Retrieves a list of all persons.
+        /// </summary>
+        /// <returns>A list of all persons.</returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Person>>> GetPersons()
+        public async Task<ActionResult<IEnumerable<Person>>> GetPersonsAsync()
         {
-            var persons = await _peopleServices.GetAll();
-            return Ok(persons);
+            try
+            {
+                var persons = await _peopleServices.GetAllAsync();
+                return Ok(persons);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving persons.");
+                return StatusCode(500, "Internal server error");
+            }
         }
 
-        // GET: api/persons/{id}
+        /// <summary>
+        /// Retrieves a person by ID.
+        /// </summary>
+        /// <param name="id">The ID of the person.</param>
+        /// <returns>The person with the specified ID.</returns>
         [HttpGet("{id}")]
-        public async Task<ActionResult<Person>> GetPerson(long id)
+        public async Task<ActionResult<Person>> GetPersonAsync(long id)
         {
-            var person = await _peopleServices.GetById(id);
-            if (person == null)
+            try
             {
-                return NotFound();
+                var person = await _peopleServices.GetByIdAsync(id);
+                if (person == null)
+                {
+                    return NotFound();
+                }
+                return Ok(person);
             }
-            return Ok(person);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error retrieving person with id {id}.");
+                return StatusCode(500, "Internal server error");
+            }
         }
 
-        // POST: api/persons
+        /// <summary>
+        /// Creates a new person.
+        /// </summary>
+        /// <param name="personCreateDto">The data transfer object containing person creation data.</param>
+        /// <returns>The created person.</returns>
         [HttpPost]
-        public async Task<ActionResult> CreatePerson([FromBody] Person person)
+        public async Task<ActionResult> CreatePersonAsync([FromBody] PersonCreateDto personCreateDto)
         {
-            if (person == null)
+            try
             {
-                return BadRequest("Invalid data.");
-            }
+                if (personCreateDto == null)
+                {
+                    return BadRequest("Invalid data.");
+                }
 
-            await _peopleServices.Create(person);
-            return CreatedAtAction(nameof(GetPerson), new { id = person.Id }, person);
+                var person = new Person
+                {
+                    Name = personCreateDto.Name,
+                    DisplayName = personCreateDto.DisplayName,
+                    Skills = personCreateDto.Skills.Select(s => new Skill
+                    {
+                        Name = s.Name,
+                        Level = s.Level
+                    }).ToList()
+                };
+
+                await _peopleServices.CreateAsync(person);
+                return Ok(person);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating person.");
+                return StatusCode(500, "Internal server error");
+            }
         }
 
-        // PUT: api/persons/{id}
+        /// <summary>
+        /// Updates an existing person by ID.
+        /// </summary>
+        /// <param name="id">The ID of the person to update.</param>
+        /// <param name="personUpdateDto">The data transfer object containing person update data.</param>
+        /// <returns>A status indicating the result of the operation.</returns>
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePerson(long id, [FromBody] Person person)
+        public async Task<IActionResult> UpdatePersonAsync(long id, [FromBody] PersonUpdateDto personUpdateDto)
         {
-
-            // Вызываем сервис для обновления по идентификатору
-            await _peopleServices.UpdateById(person);
-
-            return NoContent();
-        }
-
-        private bool PersonExists(long id)
-        {
-            return _context.Persons.Any(e => e.Id == id);
-        }
-
-        // DELETE: api/persons/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePerson(long id)
-        {
-            var existingPerson = await _peopleServices.GetById(id);
-            if (existingPerson == null)
+            try
             {
-                return NotFound();
-            }
+                if (personUpdateDto == null)
+                {
+                    return BadRequest("Invalid data.");
+                }
 
-            await _peopleServices.DeleteById(id);
-            return NoContent();
+                var person = new Person
+                {
+                    Id = id, // Set the ID from the URL parameter
+                    Name = personUpdateDto.Name,
+                    DisplayName = personUpdateDto.DisplayName,
+                    Skills = personUpdateDto.Skills.Select(s => new Skill
+                    {
+                        Id = s.Id,
+                        Name = s.Name,
+                        Level = s.Level
+                    }).ToList()
+                };
+
+                await _peopleServices.UpdateByIdAsync(person);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating person with id {id}.");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        /// <summary>
+        /// Deletes a person by ID.
+        /// </summary>
+        /// <param name="id">The ID of the person to delete.</param>
+        /// <returns>A status indicating the result of the operation.</returns>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeletePersonAsync(long id)
+        {
+            try
+            {
+                await _peopleServices.DeleteByIdAsync(id);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error deleting person with id {id}.");
+                return StatusCode(500, "Internal server error");
+            }
         }
     }
-
 }

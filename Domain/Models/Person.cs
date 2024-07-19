@@ -1,14 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Collections.Generic;
 
-namespace Domain
+namespace Domain.Models
 {
     public class Person
     {
         public long Id { get; set; }
 
         [Column(TypeName = "varchar(100)")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [Column(TypeName = "varchar(100)")]
         public string DisplayName { get; set; } = string.Empty;

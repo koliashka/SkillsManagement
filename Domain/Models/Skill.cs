@@ -1,13 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Domain
+namespace Domain.Models
 {
     public class Skill
     {
         public int Id { get; set; }
 
         [Column(TypeName = "varchar(100)")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         public byte Level { get; set; }
 
