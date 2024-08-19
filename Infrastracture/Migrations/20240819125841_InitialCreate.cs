@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastracture.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -29,15 +29,13 @@ namespace Infrastracture.Migrations
                 name: "Skills",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    PersonId = table.Column<long>(type: "bigint", nullable: false),
                     Name = table.Column<string>(type: "varchar(100)", nullable: false),
-                    Level = table.Column<byte>(type: "smallint", nullable: false),
-                    PersonId = table.Column<long>(type: "bigint", nullable: false)
+                    Level = table.Column<byte>(type: "smallint", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Skills", x => x.Id);
+                    table.PrimaryKey("PK_Skills", x => new { x.Name, x.PersonId });
                     table.ForeignKey(
                         name: "FK_Skills_Persons_PersonId",
                         column: x => x.PersonId,

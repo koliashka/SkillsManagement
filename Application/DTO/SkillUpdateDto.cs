@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Application.DTO
+﻿namespace Application.DTO
 {
     public class SkillUpdateDto
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
+        
+        public string Name { get; set; } = string.Empty;
         public byte Level { get; set; }
     }
 }
